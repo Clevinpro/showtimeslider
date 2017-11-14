@@ -9,62 +9,94 @@
     init: function() {
       this.wrapper = this.el.querySelector( ".slider-wrapper" );
       this.slides = this.el.querySelectorAll( ".slide" );
-      this.previous = this.el.querySelector( ".slider-previous" );
-      this.next = this.el.querySelector( ".slider-next" );
       this.dots = this.el.querySelectorAll('.dot');
       this.dotsWrap = this.el.querySelector('.dots');
 
+      this.firstRun = false;
       this.index = 0;
       this.total = this.slides.length;
       this.timer = null;
 
+      this.createDots();
       this.action();
-      this.stopStart();
     },
     _slideTo: function( slide ) {
       var currentSlide = this.slides[slide];
-      currentSlide.style.opacity = 1;
-      var dot = document.createElement('SPAN');
-      dot.className = 'dot';
+      currentSlide.classList.add('active__slide');
+
       for( var i = 0; i < this.total; i++ ) {
         var slide = this.slides[i];
+
+
         if( slide !== currentSlide ) {
-          slide.style.opacity = 0;
-        }
-        if (this.dots.length < 1) {
-          console.log(this.dots.length)
-          for (var d = 0; d < this.total; d++) {
-            this.dotsWrap.appendChild(dot.cloneNode())
-          }
-          this.dots = this.el.querySelectorAll('.dot');
+          slide.classList.remove('active__slide');
         }
       }
     },
     action: function() {
       var self = this;
       self.timer = setInterval(function() {
-        self.index++;
-        if( self.index == self.slides.length ) {
+        self.dots[self.index].classList.add('complete');
+        if(self.firstRun) {
+          self.index++;
+        }
+        self.firstRun = true;
+        if( self.index == self.total ) {
+          self.dots.forEach(function (e) {
+            e.classList.remove('complete');
+          });
+
           self.index = 0;
         }
+
         self._slideTo( self.index );
+        self.dots.forEach(function (e) {
+          e.classList.remove('active');
+        });
+        self.dots[self.index].classList.add('active');
 
-      }, 3000);
+      }, 5000);
     },
-    stopStart: function() {
-      var self = this;
-      self.el.addEventListener( "mouseover", function() {
-        clearInterval( self.timer );
-        self.timer = null;
-
-      }, false);
-      self.el.addEventListener( "mouseout", function() {
-        self.action();
-
-      }, false);
-    },
+    // stopStart: function() {
+    //   var self = this;
+    //   self.el.addEventListener( "mouseover", function() {
+    //     clearInterval( self.timer );
+    //     self.timer = null;
+    //
+    //   }, false);
+    //   self.el.addEventListener( "mouseout", function() {
+    //     self.action();
+    //
+    //   }, false);
+    // },
     onDotHandle: function () {
       var self = this;
+      self.dots.forEach(function (item, i) {
+        item.addEventListener('click', function () {
+          self.dots.forEach(function (e) {
+              e.classList.remove('active');
+          });
+          item.classList.add('active');
+          clearInterval( self.timer );
+          self.timer = null;
+          self.index = i;
+          self._slideTo(i);
+          self.action();
+        })
+      })
+    },
+    createDots: function () {
+      var dot = document.createElement('SPAN');
+      dot.className = 'dot';
+      if (this.dots.length < 1) {
+        console.log(this.dots.length)
+        for (var d = 0; d < this.total; d++) {
+          this.dotsWrap.appendChild(dot.cloneNode())
+        }
+        this.dots = this.el.querySelectorAll('.dot');
+        console.log(this.dots);
+        this.onDotHandle();
+      }
     }
 
 
